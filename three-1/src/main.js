@@ -1,48 +1,53 @@
-import './styles/app.css';
+﻿import './styles/app.css';
 
 import { mountHomePage } from './pages/home.js';
 import { mountCubePage } from './pages/cube.js';
 import { mountCubesPage } from './pages/cubes.js';
 import { mountModelPage } from './pages/model.js';
 import { mountPrimitivesPage } from './pages/primitives.js';
+import { mountPrimitiveDetailPage } from './pages/primitive-detail.js';
+import { getPrimitiveById } from './components/primitives/primitives-data.js';
 
 const routes = [
   {
     path: '/',
     label: '首页',
-    description: '查看项目结构和可用的场景入口。',
+    description: '查看项目结构和可用场景入口。',
     mount: mountHomePage,
+    title: '首页',
   },
   {
     path: '/cube',
     label: '单立方体',
     description: '一个基础的立方体演示场景。',
     mount: mountCubePage,
+    title: '单立方体',
   },
   {
     path: '/cubes',
     label: '多立方体',
     description: '一个基础的多立方体演示场景。',
     mount: mountCubesPage,
+    title: '多立方体',
   },
   {
     path: '/model',
     label: '模型',
-    description: '加载 GLB 模型并自动完成视角取景。',
+    description: '加载 GLB 模型并自动取景。',
     mount: mountModelPage,
+    title: '模型',
   },
   {
     path: '/primitives',
     label: '图元',
     description: '预览常见的 Three.js 基础几何图元。',
     mount: mountPrimitivesPage,
+    title: '图元总览',
   },
 ];
 
-const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives',
-);
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
+const navRoutes = routes.filter((route) => route.path === '/' || route.path === '/primitives');
 const app = document.querySelector('#app');
 
 app.innerHTML = `
@@ -68,18 +73,35 @@ app.innerHTML = `
 const routeRoot = document.querySelector('#route-root');
 let unmountCurrentPage = () => {};
 
-// 获取路由
 function getCurrentPath() {
   const hashPath = window.location.hash.slice(1).trim();
-
-  if (!hashPath) {
-    return '/';
-  }
-
+  if (!hashPath) return '/';
   return hashPath.startsWith('/') ? hashPath : `/${hashPath}`;
 }
 
-// 设置活跃nav
+function resolveRoute(path) {
+  // 静态路由匹配
+  const staticRoute = routesByPath.get(path);
+  if (staticRoute) {
+    return { route: staticRoute, activePath: staticRoute.path, mountArgs: { routes }, title: staticRoute.title };
+  }
+
+  // 动态路由匹配
+  const primitiveMatch = path.match(/^\/primitives\/([^/]+)$/);
+  if (primitiveMatch) {
+    const primitive = getPrimitiveById(primitiveMatch[1]);
+    return {
+      route: { mount: mountPrimitiveDetailPage },
+      activePath: '/primitives',
+      mountArgs: { routes, primitiveId: primitiveMatch[1] },
+      title: primitive ? `${primitive.name} 详情` : '图元详情',
+    };
+  }
+
+  const homeRoute = routesByPath.get('/');
+  return { route: homeRoute, activePath: '/', mountArgs: { routes }, title: homeRoute.title };
+}
+
 function setActiveNav(path) {
   document.querySelectorAll('.nav-link').forEach((link) => {
     const isActive = link.dataset.path === path;
@@ -89,20 +111,16 @@ function setActiveNav(path) {
 }
 
 function renderRoute() {
-  // 获取路由
   const path = getCurrentPath();
-  // 获取路由路径对应的组件
-  const route = routesByPath.get(path) ?? routesByPath.get('/');
+  const resolved = resolveRoute(path);
 
-  // 卸载当前内容
   unmountCurrentPage();
   routeRoot.innerHTML = '';
-  setActiveNav(route.path);
-  document.title = `${route.label} | Three.js 路由演示`;
-  unmountCurrentPage = route.mount(routeRoot, { routes }) ?? (() => {});
+  setActiveNav(resolved.activePath);
+  document.title = `${resolved.title} | Three.js 路由演示`;
+  unmountCurrentPage = resolved.route.mount(routeRoot, resolved.mountArgs) ?? (() => {});
 }
 
-// 切换路由触发重新渲染
 window.addEventListener('hashchange', renderRoute);
 
 if (!window.location.hash) {
@@ -110,3 +128,4 @@ if (!window.location.hash) {
 }
 
 renderRoute();
+
