@@ -4,35 +4,44 @@ import { mountHomePage } from './pages/home.js';
 import { mountCubePage } from './pages/cube.js';
 import { mountCubesPage } from './pages/cubes.js';
 import { mountModelPage } from './pages/model.js';
+import { mountPrimitivesPage } from './pages/primitives.js';
 
 const routes = [
   {
     path: '/',
-    label: 'Home',
-    description: 'Project structure and available scene entries.',
+    label: '首页',
+    description: '查看项目结构和可用的场景入口。',
     mount: mountHomePage,
   },
   {
     path: '/cube',
-    label: 'Cube',
-    description: 'A basic multi-cube scene.',
+    label: '单立方体',
+    description: '一个基础的立方体演示场景。',
     mount: mountCubePage,
   },
   {
     path: '/cubes',
-    label: 'Cubes',
-    description: 'A basic multi-cube scene.',
+    label: '多立方体',
+    description: '一个基础的多立方体演示场景。',
     mount: mountCubesPage,
   },
   {
     path: '/model',
-    label: 'Model',
-    description: 'Load a GLB model and frame it automatically.',
+    label: '模型',
+    description: '加载 GLB 模型并自动完成视角取景。',
     mount: mountModelPage,
+  },
+  {
+    path: '/primitives',
+    label: '图元',
+    description: '预览常见的 Three.js 基础几何图元。',
+    mount: mountPrimitivesPage,
   },
 ];
 
-const navRoutes = routes.filter((route) => route.path === '/');
+const navRoutes = routes.filter(
+  (route) => route.path === '/' || route.path === '/primitives',
+);
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const app = document.querySelector('#app');
 
@@ -40,10 +49,10 @@ app.innerHTML = `
   <div class="app-shell">
     <header class="app-header">
       <div>
-        <p class="eyebrow">Vite + Three.js</p>
-        <h1>Single Entry Router Demo</h1>
+        <p class="eyebrow">Vite + Three.js 示例</p>
+        <h1>单入口路由演示</h1>
       </div>
-      <nav class="app-nav" aria-label="Routes">
+      <nav class="app-nav" aria-label="页面导航">
         ${navRoutes
           .map(
             (route) =>
@@ -89,7 +98,7 @@ function renderRoute() {
   unmountCurrentPage();
   routeRoot.innerHTML = '';
   setActiveNav(route.path);
-  document.title = `${route.label} | Three.js Router Demo`;
+  document.title = `${route.label} | Three.js 路由演示`;
   unmountCurrentPage = route.mount(routeRoot, { routes }) ?? (() => {});
 }
 

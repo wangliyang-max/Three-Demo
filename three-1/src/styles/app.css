@@ -135,6 +135,38 @@ code {
   line-height: 1.7;
 }
 
+.page-back-link {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid rgba(109, 211, 206, 0.28);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(109, 211, 206, 0.08);
+  transition: 160ms ease;
+}
+
+.page-back-link:hover {
+  color: var(--text);
+  border-color: rgba(109, 211, 206, 0.5);
+  background: rgba(109, 211, 206, 0.16);
+}
+.viewer-status {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(109, 211, 206, 0.22);
+  border-radius: 16px;
+  color: var(--text);
+  background: rgba(109, 211, 206, 0.08);
+}
+
+.viewer-status.is-error {
+  border-color: rgba(255, 122, 122, 0.4);
+  color: #ffd4d4;
+  background: rgba(255, 122, 122, 0.08);
+}
+
 .route-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -203,3 +235,4 @@ code {
     min-height: 56vh;
   }
 }
+
