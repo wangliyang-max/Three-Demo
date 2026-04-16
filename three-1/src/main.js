@@ -6,6 +6,7 @@ import { mountCubesPage } from './pages/cubes.js';
 import { mountModelPage } from './pages/model.js';
 import { mountPrimitivesPage } from './pages/primitives.js';
 import { mountPrimitiveDetailPage } from './pages/primitive-detail.js';
+import { mountEdgesWireframePage } from './pages/edges-wireframe.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
 
 const routes = [
@@ -44,10 +45,19 @@ const routes = [
     mount: mountPrimitivesPage,
     title: '图元总览',
   },
+  {
+    path: '/edges-wireframe',
+    label: '边线与线框',
+    description: '对比 EdgesGeometry 与 WireframeGeometry 的提取效果。',
+    mount: mountEdgesWireframePage,
+    title: '边线与线框',
+  },
 ];
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
-const navRoutes = routes.filter((route) => route.path === '/' || route.path === '/primitives');
+const navRoutes = routes.filter(
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/edges-wireframe',
+);
 const app = document.querySelector('#app');
 
 app.innerHTML = `
@@ -80,13 +90,11 @@ function getCurrentPath() {
 }
 
 function resolveRoute(path) {
-  // 静态路由匹配
   const staticRoute = routesByPath.get(path);
   if (staticRoute) {
     return { route: staticRoute, activePath: staticRoute.path, mountArgs: { routes }, title: staticRoute.title };
   }
 
-  // 动态路由匹配
   const primitiveMatch = path.match(/^\/primitives\/([^/]+)$/);
   if (primitiveMatch) {
     const primitive = getPrimitiveById(primitiveMatch[1]);
@@ -128,4 +136,3 @@ if (!window.location.hash) {
 }
 
 renderRoute();
-
