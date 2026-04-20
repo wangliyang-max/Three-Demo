@@ -1,15 +1,14 @@
-// 首页也是一个页面模块，只是不创建 Three 场景，只负责说明当前路由结构。
-export function mountHomePage(container, { routes }) {
-  // 首页本身不作为场景卡片展示，所以这里过滤掉根路由。
+﻿export function mountHomePage(container, { routes }) {
   const sceneRoutes = routes.filter((route) => route.path !== '/');
 
   container.innerHTML = `
     <section class="page page-home">
       <div class="intro-card">
-        <p class="eyebrow">推荐结构</p>
-        <h2>不要再让多个 <code>main.js</code> 直接躺在根目录</h2>
+        <p class="eyebrow">项目导览</p>
+        <h2>从 <code>main.js</code> 统一切换不同的 Three.js 示例</h2>
         <p class="intro-text">
-          现在首页只负责路由壳层。每个场景都拆成一个页面模块，新增新页面时只需要新建一个模块，再注册一条路由。
+          这个项目把每个示例页都挂在同一个入口里，再通过 hash 路由切换具体场景。
+          这样你可以一边看页面结构，一边拆开每个场景是怎么初始化、渲染和清理的。
         </p>
       </div>
       <div class="route-grid">
@@ -25,13 +24,12 @@ export function mountHomePage(container, { routes }) {
           .join('')}
       </div>
       <div class="tips-card">
-        <p>后面如果你要新增页面，推荐放到 <code>src/pages/</code>。</p>
-        <p>如果以后你想把 hash 路由换成真正的 <code>/path</code> 路由，再补服务器回退配置就行。</p>
+        <p>如果你想继续扩展示例，可以优先参考 <code>src/pages/</code> 里的页面模块模式。</p>
+        <p>每个页面都通过 hash 对应一个 <code>/path</code>，这样新增路由时只需要接上入口和挂载函数。</p>
       </div>
     </section>
   `;
 
-  // 跟其他页面保持同样的约定：返回一个卸载函数，供路由切换时调用。
   return () => {
     container.innerHTML = '';
   };

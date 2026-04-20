@@ -7,6 +7,7 @@ import { mountModelPage } from './pages/model.js';
 import { mountPrimitivesPage } from './pages/primitives.js';
 import { mountPrimitiveDetailPage } from './pages/primitive-detail.js';
 import { mountEdgesWireframePage } from './pages/edges-wireframe.js';
+import { mountSolarSystemPage } from './pages/solar-system.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
 
 const routes = [
@@ -52,11 +53,18 @@ const routes = [
     mount: mountEdgesWireframePage,
     title: '边线与线框',
   },
+  {
+    path: '/solar-system',
+    label: '太阳系',
+    description: '用 scene graph 展示公转、自转和父子层级关系。',
+    mount: mountSolarSystemPage,
+    title: '太阳系',
+  },
 ];
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/edges-wireframe',
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/solar-system' || route.path === '/edges-wireframe',
 );
 const app = document.querySelector('#app');
 

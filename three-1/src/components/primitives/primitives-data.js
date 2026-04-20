@@ -9,7 +9,8 @@ import helvetikerRegular from 'three/examples/fonts/helvetiker_regular.typeface.
 const parsedFont = new FontLoader().parse(helvetikerRegular);
 
 // 页面里会同时展示示例代码。
-// 这个函数专门把浮点数压缩成更短、更适合阅读的字符串。
+// 这个函数专门把浮点数压缩成更短、更适合阅读的字符串，
+// 例如 1.2000000001 会显示成 1.2，避免代码块里出现很多视觉噪音。
 function formatNumber(value) {
   if (Number.isInteger(value)) return `${value}`;
   return `${Number(value.toFixed(2))}`;
@@ -17,9 +18,15 @@ function formatNumber(value) {
 
 // 下面几个辅助函数负责生成特殊图元需要的输入数据。
 // 例如星形轮廓给 ExtrudeGeometry，路径给 TubeGeometry，参数曲面函数给 ParametricGeometry。
+// 它们的共同特点是：
+// 1. 不是直接 new 一个内置 geometry 就结束。
+// 2. 需要先准备轮廓、路径、顶点或数学函数，再交给 geometry 构造器使用。
 function createStarShape(spikes, outerRadius, innerRadius) {
   const shape = new THREE.Shape();
   const totalPoints = spikes * 2;
+
+  // 星形的做法是“外点 / 内点”交替连接，
+  // 因此总点数是 spikes * 2。
   for (let i = 0; i < totalPoints; i += 1) {
     const radius = i % 2 === 0 ? outerRadius : innerRadius;
     const angle = -Math.PI / 2 + i * (Math.PI / spikes);
@@ -41,11 +48,18 @@ function createTriangleShape(width, height) {
 }
 
 function createLathePoints(profileWidth, profileHeight, neckWidth) {
+  // 这组基础点描述的是一个大致像瓶子 / 烛台的 2D 轮廓模板。
+  // 后面会通过 LatheGeometry 绕 Y 轴旋转它。
   const base = [[0,-1.7],[0.3,-1.7],[0.44,-1.3],[0.36,-0.6],[0.3,0.1],[0.22,0.8],[0.15,1.25],[0.12,1.55],[0.18,1.82],[0,1.82]];
+
+  // 前半部分控制瓶身，后半部分控制瓶颈区域，
+  // 因此对 neckWidth 做了条件缩放，让调节更有针对性。
   return base.map(([x, y], index) => new THREE.Vector2(x * (index >= 6 ? neckWidth : profileWidth), y * profileHeight));
 }
 
 function createTubePath(pathHeight, pathDepth) {
+  // TubeGeometry 需要的是一条 3D 曲线。
+  // 这里固定一组控制点，再通过 pathHeight / pathDepth 改变起伏和纵深。
   return new THREE.CatmullRomCurve3([
     new THREE.Vector3(-1.05, -0.2 * pathHeight, -0.55 * pathDepth),
     new THREE.Vector3(-0.55, 0.6 * pathHeight, 0.28 * pathDepth),
@@ -56,12 +70,16 @@ function createTubePath(pathHeight, pathDepth) {
 }
 
 function createPolyhedronGeometry(radius, detail) {
+  // PolyhedronGeometry 的输入不是现成形状，而是一组顶点数组 + 三角面索引。
+  // 这里用固定示例数据生成一个演示用多面体，再交给 three.js 做半径投影和细分。
   const vertices = [-1,-1,-1,1,-1,-1,1,1,-1,-1,1,-1,-1,-1,1,1,-1,1,1,1,1,-1,1,1];
   const indices = [0,1,2,2,3,0,4,7,6,6,5,4,0,4,5,5,1,0,1,5,6,6,2,1,2,6,7,7,3,2,3,7,4,4,0,3];
   return new THREE.PolyhedronGeometry(vertices, indices, radius, detail);
 }
 
 function createParametricSurface(params) {
+  // ParametricGeometry 需要一个 (u, v, target) => {} 形式的函数，
+  // 它会在参数空间中不断采样，然后把每个采样点映射到 3D 坐标。
   return (u, v, target) => {
     const x = (u - 0.5) * params.width;
     const z = (v - 0.5) * params.depth;
@@ -73,6 +91,8 @@ function createParametricSurface(params) {
 // geometryFactories 是这个文件最核心的一层。
 // 它把图元类型映射到真正创建 geometry 的函数。
 // 页面层只要拿到 type 和 params，就能统一生成任意图元。
+// 这样做的意义是把“图元类型分发”集中到一个地方管理，
+// 而不是在页面文件里写大量 if / switch。
 const geometryFactories = {
   box: (p) => new THREE.BoxGeometry(p.width, p.height, p.depth, p.widthSegments, p.heightSegments, p.depthSegments),
   circle: (p) => new THREE.CircleGeometry(p.radius, p.segments, p.thetaStart, p.thetaLength),
@@ -98,6 +118,9 @@ const geometryFactories = {
 
 // codeFactories 和 geometryFactories 一一对应。
 // geometryFactories 负责真的创建图元，codeFactories 负责生成页面上展示的构造代码。
+// 两者保持一一映射的好处是：
+// 1. 预览出的图元和代码展示是同一套参数体系。
+// 2. 页面不会出现“图元长这样，但代码写的却不是这回事”的偏差。
 const codeFactories = {
   box: (p) => `new THREE.BoxGeometry(${formatNumber(p.width)}, ${formatNumber(p.height)}, ${formatNumber(p.depth)}, ${p.widthSegments}, ${p.heightSegments}, ${p.depthSegments})`,
   circle: (p) => `new THREE.CircleGeometry(${formatNumber(p.radius)}, ${p.segments}, ${formatNumber(p.thetaStart)}, ${formatNumber(p.thetaLength)})`,
@@ -123,7 +146,17 @@ const codeFactories = {
 
 // primitiveCatalog 是整个图元系统的共享目录。
 // 总览页、详情页、滑块、代码展示都从这里读取。
-// 每一项里最重要的字段有 id、type、defaults、controls。
+// 每一项里最重要的字段有：
+// - id: 路由和查找用的唯一标识
+// - type: 对应 geometryFactories / codeFactories 的分发键
+// - name / label / summary: 页面文案
+// - defaults: 默认参数
+// - controls: 滑块和开关的定义
+// - useCases / fixedInputs: 教学说明文案
+//
+// 这个目录的设计意图是“数据驱动页面”：
+// 页面本身不硬编码某个图元该怎么显示、有哪些参数，
+// 而是统一读取目录来渲染 UI。
 export const primitiveCatalog = [
   { id: 'box-geometry', type: 'box', name: 'BoxGeometry', label: '盒子', summary: '规则立方体。', color: 0x6dd3ce, baseRotationX: 0.45, baseRotationY: 0.55, defaults: { width: 1.2, height: 1.2, depth: 1.2, widthSegments: 2, heightSegments: 2, depthSegments: 2 }, controls: [{ key: 'width', label: '宽度', min: 0.4, max: 3, step: 0.1, help: '控制 X 方向尺寸。' }, { key: 'height', label: '高度', min: 0.4, max: 3, step: 0.1, help: '控制 Y 方向尺寸。' }, { key: 'depth', label: '深度', min: 0.4, max: 3, step: 0.1, help: '控制 Z 方向尺寸。' }, { key: 'widthSegments', label: '宽度分段', min: 1, max: 8, step: 1, help: '宽度方向的网格密度。' }, { key: 'heightSegments', label: '高度分段', min: 1, max: 8, step: 1, help: '高度方向的网格密度。' }, { key: 'depthSegments', label: '深度分段', min: 1, max: 8, step: 1, help: '深度方向的网格密度。' }], useCases: ['建筑体块', '占位模型', '规则几何'], fixedInputs: ['没有额外固定输入。'] },
   { id: 'circle-geometry', type: 'circle', name: 'CircleGeometry', label: '平面圆', summary: '二维圆面。', color: 0x9cf0b6, baseRotationX: -0.95, baseRotationY: 0.35, defaults: { radius: 0.9, segments: 48, thetaStart: 0, thetaLength: Math.PI * 2 }, controls: [{ key: 'radius', label: '半径', min: 0.2, max: 1.6, step: 0.05, help: '控制圆面的大小。' }, { key: 'segments', label: '圆周分段', min: 3, max: 64, step: 1, help: '越高越圆滑。' }, { key: 'thetaStart', label: '起始角', min: 0, max: Math.PI * 2, step: 0.1, help: '从哪个角度开始绘制。' }, { key: 'thetaLength', label: '角度长度', min: 0.2, max: Math.PI * 2, step: 0.1, help: '小于整圆时会变成扇形。' }], useCases: ['扇形图', 'UI 圆盘', '标记面片'], fixedInputs: ['没有额外固定输入。'] },
@@ -148,6 +181,7 @@ export const primitiveCatalog = [
 ];
 
 // 详情页路由进入后，会先通过 id 找到对应的图元定义。
+// 这里是整个图元系统最基础的查找入口之一。
 export function getPrimitiveById(id) {
   return primitiveCatalog.find((item) => item.id === id);
 }
@@ -159,12 +193,14 @@ export function clonePrimitiveParams(definition) {
 }
 
 // 对外暴露统一的 geometry 创建入口。
-// 这样别的文件不需要知道具体是 BoxGeometry 还是 TubeGeometry。
+// 这样别的文件不需要知道具体是 BoxGeometry 还是 TubeGeometry，
+// 只需要给出 definition + params 就能拿到 geometry。
 export function createGeometryForPrimitive(definition, params) {
   return geometryFactories[definition.type](params);
 }
 
 // 对外暴露统一的代码展示入口，和 geometry 创建逻辑保持同样的分发方式。
+// 这样页面展示的代码和真正生成的几何体能保持同一套参数体系。
 export function getPrimitiveCode(definition, params) {
   return codeFactories[definition.type](params);
 }

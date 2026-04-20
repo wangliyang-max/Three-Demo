@@ -236,3 +236,94 @@ code {
   }
 }
 
+
+.solar-system-page {
+  display: grid;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.solar-system-copy {
+  display: grid;
+  gap: 18px;
+}
+
+.solar-system-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.solar-system-legend {
+  display: grid;
+  gap: 14px;
+}
+
+.solar-system-legend__item {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(9, 11, 16, 0.5);
+}
+
+.solar-system-legend__item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.solar-system-legend__item p {
+  font-size: 0.95rem;
+}
+
+.solar-system-legend__swatch {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 999px;
+}
+
+.solar-system-legend__swatch--sun {
+  background: linear-gradient(180deg, #ffd27a 0%, #ff8a1f 100%);
+  box-shadow: 0 0 18px rgba(255, 166, 54, 0.5);
+}
+
+.solar-system-legend__swatch--earth {
+  background: linear-gradient(180deg, #6bc1ff 0%, #2b57ff 100%);
+}
+
+.solar-system-legend__swatch--moon {
+  background: linear-gradient(180deg, #f1f4fb 0%, #b1b9cb 100%);
+}
+
+.solar-system-code {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(9, 11, 16, 0.74);
+  color: #d8def0;
+  line-height: 1.7;
+  overflow: auto;
+}
+
+.solar-system-stage {
+  min-height: 72vh;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 170, 64, 0.12), transparent 18%),
+    radial-gradient(circle at top, rgba(109, 211, 206, 0.08), transparent 28%),
+    linear-gradient(180deg, #090b12 0%, #05070d 100%);
+}
+
+@media (max-width: 980px) {
+  .solar-system-page {
+    grid-template-columns: 1fr;
+  }
+
+  .solar-system-stage {
+    min-height: 58vh;
+  }
+}
