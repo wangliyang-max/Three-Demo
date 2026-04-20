@@ -8,7 +8,10 @@ import { mountPrimitivesPage } from './pages/primitives.js';
 import { mountPrimitiveDetailPage } from './pages/primitive-detail.js';
 import { mountEdgesWireframePage } from './pages/edges-wireframe.js';
 import { mountSolarSystemPage } from './pages/solar-system.js';
+import { mountMaterialsPage } from './pages/materials.js';
+import { mountMaterialDetailPage } from './pages/material-detail.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
+import { getMaterialById } from './components/materials/materials-data.js';
 
 const routes = [
   {
@@ -47,6 +50,13 @@ const routes = [
     title: '图元总览',
   },
   {
+    path: '/materials',
+    label: '材质',
+    description: '对比同一几何体在不同 Three.js 材质下的表现差异。',
+    mount: mountMaterialsPage,
+    title: '材质总览',
+  },
+  {
     path: '/edges-wireframe',
     label: '边线与线框',
     description: '对比 EdgesGeometry 与 WireframeGeometry 的提取效果。',
@@ -64,7 +74,7 @@ const routes = [
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/solar-system' || route.path === '/edges-wireframe',
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/solar-system' || route.path === '/edges-wireframe',
 );
 const app = document.querySelector('#app');
 
@@ -111,6 +121,17 @@ function resolveRoute(path) {
       activePath: '/primitives',
       mountArgs: { routes, primitiveId: primitiveMatch[1] },
       title: primitive ? `${primitive.name} 详情` : '图元详情',
+    };
+  }
+
+  const materialMatch = path.match(/^\/materials\/([^/]+)$/);
+  if (materialMatch) {
+    const material = getMaterialById(materialMatch[1]);
+    return {
+      route: { mount: mountMaterialDetailPage },
+      activePath: '/materials',
+      mountArgs: { routes, materialId: materialMatch[1] },
+      title: material ? `${material.name} 详情` : '材质详情',
     };
   }
 
