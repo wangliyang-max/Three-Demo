@@ -61,9 +61,47 @@ export function createMaterialPreview(definition) {
   rimLight.position.set(0, 1.6, 2.2);
   scene.add(rimLight);
 
+  // ShadowMaterial 的语义和普通材质不同：
+  // 它本身不会把几何体表面正常画出来，而是只显示“接收到的阴影”。
+  // 所以这里额外搭一个小型阴影演示场景，只在该材质下启用。
+  // 这样卡片里能清楚看到阴影，而不是误以为材质失效了。
+  let shadowPlane = null;
+  let shadowCaster = null;
+  let shadowCasterGeometry = null;
+  let shadowCasterMaterial = null;
+
+  if (definition.id === 'shadow') {
+    rendererShadowSetup(scene, mesh, material, keyLight);
+
+    // 记录专门为阴影演示创建的对象，后面统一销毁。
+    shadowPlane = mesh;
+    shadowCasterGeometry = new THREE.SphereGeometry(0.34, 32, 24);
+    shadowCasterMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffd18a,
+      roughness: 0.45,
+      metalness: 0.08,
+    });
+    shadowCaster = new THREE.Mesh(shadowCasterGeometry, shadowCasterMaterial);
+    shadowCaster.position.set(0.65, 0.72, 0.1);
+    shadowCaster.castShadow = true;
+    scene.add(shadowCaster);
+  }
+
   // 给每张卡片或详情页一个统一的缓慢旋转动画。
   // index 主要是给总览页里的多张卡片错开相位，避免大家完全同步转动，看起来太呆板。
   function setRotation(seconds, index = 0) {
+    if (definition.id === 'shadow') {
+      // 对 ShadowMaterial 来说，真正需要动的是上方的投影体。
+      // 让它轻微绕圈和上下浮动，阴影变化会比旋转一个透明接收面更有教学意义。
+      if (shadowCaster) {
+        shadowCaster.position.x = Math.cos(seconds * 0.9 + index * 0.3) * 0.58;
+        shadowCaster.position.z = Math.sin(seconds * 0.9 + index * 0.3) * 0.35;
+        shadowCaster.position.y = 0.68 + Math.sin(seconds * 1.4 + index * 0.4) * 0.12;
+        shadowCaster.rotation.y = seconds * 1.2;
+      }
+      return;
+    }
+
     mesh.rotation.x = 0.28 + Math.sin(seconds * 0.7 + index * 0.45) * 0.12;
     mesh.rotation.y = seconds * 0.75 + index * 0.32;
   }
@@ -75,8 +113,36 @@ export function createMaterialPreview(definition) {
     material.dispose();
     shadowDisk.geometry.dispose();
     shadowDisk.material.dispose();
+    shadowCasterGeometry?.dispose();
+    shadowCasterMaterial?.dispose();
     disposeMaterialExtras?.();
   }
 
   return { scene, camera, setRotation, dispose };
 }
+
+// 只在 ShadowMaterial 场景中启用阴影接收逻辑。
+// 这里把原来的球体切换成一个水平接收面，并开启方向光阴影，
+// 这样 ShadowMaterial 才能按它的设计语义显示出“阴影”。
+function rendererShadowSetup(scene, mesh, material, keyLight) {
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.PlaneGeometry(2.7, 2.7, 1, 1);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = -0.55;
+  mesh.receiveShadow = true;
+  material.opacity = 0.55;
+
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.camera.near = 0.5;
+  keyLight.shadow.camera.far = 12;
+  keyLight.shadow.camera.left = -3;
+  keyLight.shadow.camera.right = 3;
+  keyLight.shadow.camera.top = 3;
+  keyLight.shadow.camera.bottom = -3;
+
+  // 只有 ShadowMaterial 预览需要 renderer 侧支持阴影，
+  // 页面层会读取这个标记来开启 renderer.shadowMap。
+  scene.userData.requiresShadowMap = true;
+}
+

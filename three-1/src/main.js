@@ -10,8 +10,20 @@ import { mountEdgesWireframePage } from './pages/edges-wireframe.js';
 import { mountSolarSystemPage } from './pages/solar-system.js';
 import { mountMaterialsPage } from './pages/materials.js';
 import { mountMaterialDetailPage } from './pages/material-detail.js';
+import { mountTexturesPage } from './pages/textures.js';
+import { mountTextureDetailPage } from './pages/texture-detail.js';
+import { mountLightsPage } from './pages/lights.js';
+import { mountLightDetailPage } from './pages/light-detail.js';
+import { mountCamerasPage } from './pages/cameras.js';
+import { mountCameraDetailPage } from './pages/camera-detail.js';
+import { mountShadowsPage } from './pages/shadows.js';
+import { mountShadowDetailPage } from './pages/shadow-detail.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
 import { getMaterialById } from './components/materials/materials-data.js';
+import { getTextureById } from './components/textures/textures-data.js';
+import { getLightById } from './components/lights/lights-data.js';
+import { getCameraById } from './components/cameras/cameras-data.js';
+import { getShadowById } from './components/shadows/shadows-data.js';
 
 const routes = [
   {
@@ -57,6 +69,34 @@ const routes = [
     title: '材质总览',
   },
   {
+    path: '/textures',
+    label: '纹理',
+    description: '对比不同纹理来源在 Three.js 里的创建方式和展示效果。',
+    mount: mountTexturesPage,
+    title: '纹理总览',
+  },
+  {
+    path: '/lights',
+    label: '光照',
+    description: '对比不同光照类型如何影响同一组受光物体。',
+    mount: mountLightsPage,
+    title: '光照总览',
+  },
+  {
+    path: '/cameras',
+    label: '相机',
+    description: '对比透视、正交和 CameraHelper 等相机示例的取景差异。',
+    mount: mountCamerasPage,
+    title: '相机总览',
+  },
+  {
+    path: '/shadows',
+    label: '阴影',
+    description: '理解假阴影、阴影相机、阴影贴图和不同灯光阴影成本。',
+    mount: mountShadowsPage,
+    title: '阴影总览',
+  },
+  {
     path: '/edges-wireframe',
     label: '边线与线框',
     description: '对比 EdgesGeometry 与 WireframeGeometry 的提取效果。',
@@ -74,7 +114,7 @@ const routes = [
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/solar-system' || route.path === '/edges-wireframe',
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/textures' || route.path === '/lights' || route.path === '/cameras' || route.path === '/shadows' || route.path === '/solar-system' || route.path === '/edges-wireframe',
 );
 const app = document.querySelector('#app');
 
@@ -135,6 +175,50 @@ function resolveRoute(path) {
     };
   }
 
+  const textureMatch = path.match(/^\/textures\/([^/]+)$/);
+  if (textureMatch) {
+    const texture = getTextureById(textureMatch[1]);
+    return {
+      route: { mount: mountTextureDetailPage },
+      activePath: '/textures',
+      mountArgs: { routes, textureId: textureMatch[1] },
+      title: texture ? `${texture.name} 详情` : '纹理详情',
+    };
+  }
+
+  const lightMatch = path.match(/^\/lights\/([^/]+)$/);
+  if (lightMatch) {
+    const light = getLightById(lightMatch[1]);
+    return {
+      route: { mount: mountLightDetailPage },
+      activePath: '/lights',
+      mountArgs: { routes, lightId: lightMatch[1] },
+      title: light ? `${light.name} 详情` : '光照详情',
+    };
+  }
+
+  const cameraMatch = path.match(/^\/cameras\/([^/]+)$/);
+  if (cameraMatch) {
+    const camera = getCameraById(cameraMatch[1]);
+    return {
+      route: { mount: mountCameraDetailPage },
+      activePath: '/cameras',
+      mountArgs: { routes, cameraId: cameraMatch[1] },
+      title: camera ? camera.name + ' 详情' : '相机详情',
+    };
+  }
+
+  const shadowMatch = path.match(/^\/shadows\/([^/]+)$/);
+  if (shadowMatch) {
+    const shadow = getShadowById(shadowMatch[1]);
+    return {
+      route: { mount: mountShadowDetailPage },
+      activePath: '/shadows',
+      mountArgs: { routes, shadowId: shadowMatch[1] },
+      title: shadow ? `${shadow.name} 详情` : '阴影详情',
+    };
+  }
+
   const homeRoute = routesByPath.get('/');
   return { route: homeRoute, activePath: '/', mountArgs: { routes }, title: homeRoute.title };
 }
@@ -165,3 +249,4 @@ if (!window.location.hash) {
 }
 
 renderRoute();
+
