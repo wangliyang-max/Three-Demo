@@ -26,6 +26,7 @@ import { mountCustomBufferGeometryPage } from './pages/custom-buffergeometry.js'
 import { mountCustomBufferGeometryDetailPage } from './pages/custom-buffergeometry-detail.js';
 import { mountPhysicsPage } from './pages/physics.js';
 import { mountPhysicsDetailPage } from './pages/physics-detail.js';
+import { mountHtmlBackgroundPage } from './pages/html-background.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
 import { getMaterialById } from './components/materials/materials-data.js';
 import { getTextureById } from './components/textures/textures-data.js';
@@ -137,6 +138,13 @@ const routes = [
     title: '物理总览',
   },
   {
+    path: '/html-background',
+    label: 'HTML 背景',
+    description: '把透明 Three.js canvas 放在 HTML 内容背后，演示网页背景式渲染。',
+    mount: mountHtmlBackgroundPage,
+    title: 'HTML 背景',
+  },
+  {
     path: '/edges-wireframe',
     label: '边线与线框',
     description: '对比 EdgesGeometry 与 WireframeGeometry 的提取效果。',
@@ -154,7 +162,7 @@ const routes = [
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/textures' || route.path === '/lights' || route.path === '/cameras' || route.path === '/shadows' || route.path === '/fog' || route.path === '/rendertargets' || route.path === '/custom-buffergeometry' || route.path === '/physics' || route.path === '/solar-system' || route.path === '/edges-wireframe',
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/textures' || route.path === '/lights' || route.path === '/cameras' || route.path === '/shadows' || route.path === '/fog' || route.path === '/rendertargets' || route.path === '/custom-buffergeometry' || route.path === '/physics' || route.path === '/html-background' || route.path === '/solar-system' || route.path === '/edges-wireframe',
 );
 const app = document.querySelector('#app');
 
