@@ -18,12 +18,24 @@ import { mountCamerasPage } from './pages/cameras.js';
 import { mountCameraDetailPage } from './pages/camera-detail.js';
 import { mountShadowsPage } from './pages/shadows.js';
 import { mountShadowDetailPage } from './pages/shadow-detail.js';
+import { mountFogPage } from './pages/fog.js';
+import { mountFogDetailPage } from './pages/fog-detail.js';
+import { mountRenderTargetsPage } from './pages/rendertargets.js';
+import { mountRenderTargetDetailPage } from './pages/rendertarget-detail.js';
+import { mountCustomBufferGeometryPage } from './pages/custom-buffergeometry.js';
+import { mountCustomBufferGeometryDetailPage } from './pages/custom-buffergeometry-detail.js';
+import { mountPhysicsPage } from './pages/physics.js';
+import { mountPhysicsDetailPage } from './pages/physics-detail.js';
 import { getPrimitiveById } from './components/primitives/primitives-data.js';
 import { getMaterialById } from './components/materials/materials-data.js';
 import { getTextureById } from './components/textures/textures-data.js';
 import { getLightById } from './components/lights/lights-data.js';
 import { getCameraById } from './components/cameras/cameras-data.js';
 import { getShadowById } from './components/shadows/shadows-data.js';
+import { getFogById } from './components/fog/fog-data.js';
+import { getRenderTargetById } from './components/rendertargets/rendertargets-data.js';
+import { getCustomBufferGeometryById } from './components/custom-buffergeometry/custom-buffergeometry-data.js';
+import { getPhysicsById } from './components/physics/physics-data.js';
 
 const routes = [
   {
@@ -97,6 +109,34 @@ const routes = [
     title: '阴影总览',
   },
   {
+    path: '/fog',
+    label: '雾',
+    description: '理解线性雾、指数雾、背景同步和材质雾开关。',
+    mount: mountFogPage,
+    title: '雾总览',
+  },
+  {
+    path: '/rendertargets',
+    label: '渲染目标',
+    description: '理解 WebGLRenderTarget、离屏渲染、实时贴图和资源释放。',
+    mount: mountRenderTargetsPage,
+    title: '渲染目标总览',
+  },
+  {
+    path: '/custom-buffergeometry',
+    label: '自定义几何体',
+    description: '理解 BufferGeometry、BufferAttribute、索引、UV、法线和动态顶点更新。',
+    mount: mountCustomBufferGeometryPage,
+    title: '自定义缓冲几何体总览',
+  },
+  {
+    path: '/physics',
+    label: '物理',
+    description: '理解重力、碰撞、body/mesh 同步和固定时间步。',
+    mount: mountPhysicsPage,
+    title: '物理总览',
+  },
+  {
     path: '/edges-wireframe',
     label: '边线与线框',
     description: '对比 EdgesGeometry 与 WireframeGeometry 的提取效果。',
@@ -114,7 +154,7 @@ const routes = [
 
 const routesByPath = new Map(routes.map((route) => [route.path, route]));
 const navRoutes = routes.filter(
-  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/textures' || route.path === '/lights' || route.path === '/cameras' || route.path === '/shadows' || route.path === '/solar-system' || route.path === '/edges-wireframe',
+  (route) => route.path === '/' || route.path === '/primitives' || route.path === '/materials' || route.path === '/textures' || route.path === '/lights' || route.path === '/cameras' || route.path === '/shadows' || route.path === '/fog' || route.path === '/rendertargets' || route.path === '/custom-buffergeometry' || route.path === '/physics' || route.path === '/solar-system' || route.path === '/edges-wireframe',
 );
 const app = document.querySelector('#app');
 
@@ -219,6 +259,47 @@ function resolveRoute(path) {
     };
   }
 
+  const fogMatch = path.match(/^\/fog\/([^/]+)$/);
+  if (fogMatch) {
+    const fog = getFogById(fogMatch[1]);
+    return {
+      route: { mount: mountFogDetailPage },
+      activePath: '/fog',
+      mountArgs: { routes, fogId: fogMatch[1] },
+      title: fog ? `${fog.name} 详情` : '雾详情',
+    };
+  }
+
+  const renderTargetMatch = path.match(/^\/rendertargets\/([^/]+)$/);
+  if (renderTargetMatch) {
+    const renderTarget = getRenderTargetById(renderTargetMatch[1]);
+    return {
+      route: { mount: mountRenderTargetDetailPage },
+      activePath: '/rendertargets',
+      mountArgs: { routes, renderTargetId: renderTargetMatch[1] },
+      title: renderTarget ? `${renderTarget.name} 详情` : '渲染目标详情',
+    };
+  }
+  const customBufferGeometryMatch = path.match(/^\/custom-buffergeometry\/([^/]+)$/);
+  if (customBufferGeometryMatch) {
+    const customBufferGeometry = getCustomBufferGeometryById(customBufferGeometryMatch[1]);
+    return {
+      route: { mount: mountCustomBufferGeometryDetailPage },
+      activePath: '/custom-buffergeometry',
+      mountArgs: { routes, customBufferGeometryId: customBufferGeometryMatch[1] },
+      title: customBufferGeometry ? `${customBufferGeometry.name} 详情` : '自定义缓冲几何体详情',
+    };
+  }
+  const physicsMatch = path.match(/^\/physics\/([^/]+)$/);
+  if (physicsMatch) {
+    const physics = getPhysicsById(physicsMatch[1]);
+    return {
+      route: { mount: mountPhysicsDetailPage },
+      activePath: '/physics',
+      mountArgs: { routes, physicsId: physicsMatch[1] },
+      title: physics ? `${physics.name} 详情` : '物理详情',
+    };
+  }
   const homeRoute = routesByPath.get('/');
   return { route: homeRoute, activePath: '/', mountArgs: { routes }, title: homeRoute.title };
 }
@@ -249,4 +330,9 @@ if (!window.location.hash) {
 }
 
 renderRoute();
+
+
+
+
+
 
